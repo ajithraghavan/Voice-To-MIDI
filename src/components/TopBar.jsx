@@ -9,6 +9,7 @@ export default function TopBar() {
   const isPlaying = useNoteStore((s) => s.isPlaying);
   const tempo = useNoteStore((s) => s.tempo);
   const notes = useNoteStore((s) => s.notes);
+  const minNoteDuration = useNoteStore((s) => s.minNoteDuration);
   const selectedPreset = useNoteStore((s) => s.selectedPreset);
   const { exportMidi } = useMidiExport();
   const { startRecording, stopRecording } = useRecorder();
@@ -86,6 +87,17 @@ export default function TopBar() {
             onChange={(e) => useNoteStore.getState().setTempo(Number(e.target.value))}
           />
           <span>BPM</span>
+        </div>
+        <div className="bpm-display" title="Min note duration (beats) — filters out tiny notes">
+          <input
+            type="number"
+            min={0.05}
+            max={1}
+            step={0.05}
+            value={minNoteDuration}
+            onChange={(e) => useNoteStore.getState().setMinNoteDuration(Number(e.target.value))}
+          />
+          <span>Min</span>
         </div>
         <span className="note-count">{notes.length} notes</span>
         {isRecording && <span className="status recording">REC</span>}

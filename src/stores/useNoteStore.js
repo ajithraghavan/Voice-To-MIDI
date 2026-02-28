@@ -7,6 +7,7 @@ const MAX_HISTORY = 50;
 const useNoteStore = create((set, get) => ({
   notes: [],
   tempo: 120,
+  minNoteDuration: 0.2,
   selectedPreset: 'piano',
   isRecording: false,
   isPlaying: false,
@@ -92,6 +93,8 @@ const useNoteStore = create((set, get) => ({
   setPreset: (preset) => set({ selectedPreset: preset }),
 
   setTempo: (tempo) => set({ tempo }),
+
+  setMinNoteDuration: (d) => set({ minNoteDuration: d }),
 
   setRecording: (isRecording) => set({ isRecording }),
 

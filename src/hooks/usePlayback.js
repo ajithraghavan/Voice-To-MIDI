@@ -1,22 +1,23 @@
-import { useRef, useCallback, useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import * as Tone from 'tone';
 import useNoteStore from '../stores/useNoteStore';
 import { createInstrument } from '../utils/presets';
 import { midiToNoteName, beatsToSeconds } from '../utils/noteHelpers';
 
-export default function usePlayback() {
-  const instrumentRef = useRef(null);
-  const rafRef = useRef(null);
-  const startTimeRef = useRef(null);
+// Module-level state so all callers share the same playback session
+let instrument = null;
+let raf = null;
+let startTime = null;
 
+export default function usePlayback() {
   const selectedPreset = useNoteStore((s) => s.selectedPreset);
 
   // Recreate instrument when preset changes
   useEffect(() => {
-    if (instrumentRef.current) {
-      instrumentRef.current.dispose();
+    if (instrument) {
+      instrument.dispose();
     }
-    instrumentRef.current = createInstrument(selectedPreset);
+    instrument = createInstrument(selectedPreset);
   }, [selectedPreset]);
 
   const startPlayback = useCallback(async () => {
@@ -25,7 +26,6 @@ export default function usePlayback() {
 
     if (notes.length === 0) return;
 
-    const instrument = instrumentRef.current;
     if (!instrument) return;
 
     const startBeat = playbackPosition;
@@ -48,11 +48,11 @@ export default function usePlayback() {
 
     setPlaying(true);
     Tone.getTransport().start();
-    startTimeRef.current = performance.now();
+    startTime = performance.now();
 
     // Update playback cursor
     const updateCursor = () => {
-      const elapsed = (performance.now() - startTimeRef.current) / 1000;
+      const elapsed = (performance.now() - startTime) / 1000;
       const { tempo: currentTempo } = useNoteStore.getState();
       const beat = startBeat + (elapsed * currentTempo) / 60;
 
@@ -63,7 +63,7 @@ export default function usePlayback() {
       }
 
       setPlaybackPosition(beat);
-      rafRef.current = requestAnimationFrame(updateCursor);
+      raf = requestAnimationFrame(updateCursor);
     };
     updateCursor();
   }, []);
@@ -72,7 +72,7 @@ export default function usePlayback() {
     const { setPlaying, setPlaybackPosition } = useNoteStore.getState();
     Tone.getTransport().stop();
     Tone.getTransport().cancel();
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    if (raf) cancelAnimationFrame(raf);
     setPlaying(false);
     setPlaybackPosition(0);
   }, []);

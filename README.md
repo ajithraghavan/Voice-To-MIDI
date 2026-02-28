@@ -5,6 +5,8 @@ A web application that converts voice/audio input into MIDI output. Sing or hum 
 ## Features
 
 - **Voice Recording**: Capture pitch from microphone input using real-time audio analysis
+- **Smart Audio Filtering**: Multi-layer noise rejection (bandpass filter, noise gate, pitch clarity threshold, frequency gate, and hysteresis) to isolate lead vocals and reject background noise
+- **Min Note Duration**: Configurable minimum note length (in beats) via the top bar — filters out tiny artifact notes. Lower values (0.05) capture fast passages; higher values (0.5+) produce cleaner output
 - **Piano Roll Editor**: Visual grid editor for viewing, adding, editing, and deleting MIDI notes
 - **Timeline Ruler**: Click-to-seek playback cursor with bar/beat markers
 - **Playback**: Listen back with selectable instrument presets (Piano, Synth, Strings)
