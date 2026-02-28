@@ -3,14 +3,21 @@ import { PitchDetector } from 'pitchy';
 import useNoteStore from '../stores/useNoteStore';
 import { frequencyToMidi, secondsToBeats } from '../utils/noteHelpers';
 
-const CLARITY_THRESHOLD = 0.85;
+const CLARITY_THRESHOLD = 0.93;
 const MIN_NOTE_DURATION = 0.05; // beats
+const NOISE_GATE_DB = -26;
+const HIGHPASS_FREQ = 80;
+const LOWPASS_FREQ = 1200;
+const MIN_FREQ = 80;
+const MAX_FREQ = 1100;
+const PITCH_STABILITY_FRAMES = 3;
 
 export default function useRecorder() {
   const streamRef = useRef(null);
   const analyserRef = useRef(null);
   const rafRef = useRef(null);
   const currentNoteRef = useRef(null);
+  const pendingNoteRef = useRef(null);
   const recordStartRef = useRef(null);
   const audioCtxRef = useRef(null);
 
@@ -23,12 +30,26 @@ export default function useRecorder() {
     const audioCtx = new AudioContext();
     audioCtxRef.current = audioCtx;
     const source = audioCtx.createMediaStreamSource(stream);
+
+    const highpass = audioCtx.createBiquadFilter();
+    highpass.type = 'highpass';
+    highpass.frequency.value = HIGHPASS_FREQ;
+    highpass.Q.value = 0.7;
+
+    const lowpass = audioCtx.createBiquadFilter();
+    lowpass.type = 'lowpass';
+    lowpass.frequency.value = LOWPASS_FREQ;
+    lowpass.Q.value = 0.7;
+
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 2048;
-    source.connect(analyser);
+    source.connect(highpass);
+    highpass.connect(lowpass);
+    lowpass.connect(analyser);
     analyserRef.current = analyser;
 
     const detector = PitchDetector.forFloat32Array(analyser.fftSize);
+    detector.minVolumeDecibels = NOISE_GATE_DB;
     const buffer = new Float32Array(analyser.fftSize);
 
     recordStartRef.current = performance.now();
@@ -42,28 +63,42 @@ export default function useRecorder() {
       const elapsedSec = (now - recordStartRef.current) / 1000;
       const currentBeat = secondsToBeats(elapsedSec, tempo);
 
-      if (clarity > CLARITY_THRESHOLD && frequency > 60 && frequency < 2000) {
+      if (clarity > CLARITY_THRESHOLD && frequency > MIN_FREQ && frequency < MAX_FREQ) {
         const midi = frequencyToMidi(frequency);
         const current = currentNoteRef.current;
 
-        if (!current || current.midi !== midi) {
-          // End previous note
-          if (current) {
-            const duration = currentBeat - current.startTime;
-            if (duration > MIN_NOTE_DURATION) {
-              addNote({
-                midi: current.midi,
-                startTime: current.startTime,
-                duration,
-                velocity: 100,
-              });
+        if (current && current.midi === midi) {
+          // Same note continues — clear any pending candidate
+          pendingNoteRef.current = null;
+        } else {
+          // Different note detected — apply hysteresis
+          const pending = pendingNoteRef.current;
+          if (pending && pending.midi === midi) {
+            pending.framesHeld++;
+            if (pending.framesHeld >= PITCH_STABILITY_FRAMES) {
+              // Candidate confirmed — end previous note and start new one
+              if (current) {
+                const duration = currentBeat - current.startTime;
+                if (duration > MIN_NOTE_DURATION) {
+                  addNote({
+                    midi: current.midi,
+                    startTime: current.startTime,
+                    duration,
+                    velocity: 100,
+                  });
+                }
+              }
+              currentNoteRef.current = { midi, startTime: currentBeat };
+              pendingNoteRef.current = null;
             }
+          } else {
+            // New candidate — start tracking
+            pendingNoteRef.current = { midi, framesHeld: 1 };
           }
-          // Start new note
-          currentNoteRef.current = { midi, startTime: currentBeat };
         }
       } else {
-        // Silence — end current note
+        // Silence — end current note and clear pending
+        pendingNoteRef.current = null;
         if (currentNoteRef.current) {
           const duration = currentBeat - currentNoteRef.current.startTime;
           if (duration > MIN_NOTE_DURATION) {
@@ -102,6 +137,7 @@ export default function useRecorder() {
       }
       currentNoteRef.current = null;
     }
+    pendingNoteRef.current = null;
 
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     if (streamRef.current) {
