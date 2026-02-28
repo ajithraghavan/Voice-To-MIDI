@@ -1,0 +1,352 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2a2a2a;
+  --bg-tertiary: #333;
+  --text-primary: #b0b0b0;
+  --text-secondary: #999;
+  --accent: #ff7a00;
+  --accent-light: #ff9a33;
+  --danger: #e04040;
+  --success: #6abf4b;
+  --border: #444;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow: hidden;
+  height: 100vh;
+}
+
+#root {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Top Bar — Ableton-style compact header */
+.top-bar {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  height: 32px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  gap: 2px;
+  font-size: 11px;
+}
+
+.transport-section {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.transport-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 22px;
+  border: none;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.transport-btn:hover:not(:disabled) {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.transport-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.transport-btn.record .record-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #888;
+  display: inline-block;
+}
+
+.transport-btn.record.active .record-dot {
+  background: var(--danger);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.transport-btn.play.active {
+  color: var(--success);
+}
+
+.divider {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 6px;
+}
+
+/* BPM / Info section */
+.info-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bpm-display {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.bpm-display input {
+  width: 40px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 2px 4px;
+  font-size: 11px;
+  text-align: center;
+  outline: none;
+}
+
+.bpm-display input:focus {
+  border-color: var(--accent);
+}
+
+.note-count {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.status {
+  font-weight: 600;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status.recording {
+  color: var(--danger);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.status.playing {
+  color: var(--success);
+}
+
+/* Spacer pushes right side controls */
+.top-bar-spacer {
+  flex: 1;
+}
+
+/* Right controls */
+.right-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.preset-selector {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.preset-selector select {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 2px 6px;
+  font-size: 11px;
+  cursor: pointer;
+  outline: none;
+  height: 22px;
+}
+
+.preset-selector select:hover {
+  border-color: var(--accent);
+}
+
+.export-btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 2px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  height: 22px;
+  line-height: 1;
+}
+
+.export-btn:hover:not(:disabled) {
+  background: var(--accent-light);
+}
+
+.export-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.clear-btn {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 3px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  height: 22px;
+  line-height: 1;
+}
+
+.clear-btn:hover:not(:disabled) {
+  border-color: #666;
+  color: var(--text-primary);
+}
+
+.clear-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Timeline Ruler */
+.timeline-row {
+  display: flex;
+  flex-shrink: 0;
+  height: 24px;
+  background: #1a1a1a;
+  border-bottom: 1px solid var(--border);
+}
+
+.timeline-keys-spacer {
+  width: 48px;
+  flex-shrink: 0;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+}
+
+.timeline-container {
+  flex: 1;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.timeline-canvas {
+  display: block;
+}
+
+/* Piano Roll Area */
+.piano-roll-wrapper {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.piano-keys {
+  width: 48px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  scrollbar-width: none;
+}
+
+.piano-keys::-webkit-scrollbar {
+  display: none;
+}
+
+.piano-key {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 4px;
+  border-bottom: 1px solid #3a3a3a;
+  font-size: 8px;
+  user-select: none;
+}
+
+.piano-key.white {
+  background: #3a3a3a;
+  color: #999;
+}
+
+.piano-key.black {
+  background: #252525;
+  color: #666;
+}
+
+.key-label {
+  font-family: monospace;
+}
+
+.piano-roll-container {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+
+.piano-roll-canvas {
+  display: block;
+  cursor: crosshair;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Empty state */
+.empty-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #666;
+  font-size: 12px;
+  text-align: center;
+  pointer-events: none;
+  line-height: 1.6;
+}
+
+/* Scrollbar styling */
+.piano-roll-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.piano-roll-container::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+.piano-roll-container::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 2px;
+}
+
+.piano-roll-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
