@@ -19,11 +19,13 @@ let raf = null;
 let currentNote = null;
 let pendingNote = null;
 let recordStart = null;
+let startBeat = 0;
 let audioCtx = null;
 
 export default function useRecorder() {
   const startRecording = useCallback(async () => {
-    const { setRecording, addNote, tempo, minNoteDuration } = useNoteStore.getState();
+    const { setRecording, addNote, tempo, minNoteDuration, playbackPosition } = useNoteStore.getState();
+    startBeat = playbackPosition;
 
     stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
@@ -59,7 +61,7 @@ export default function useRecorder() {
 
       const now = performance.now();
       const elapsedSec = (now - recordStart) / 1000;
-      const currentBeat = secondsToBeats(elapsedSec, tempo);
+      const currentBeat = startBeat + secondsToBeats(elapsedSec, tempo);
 
       if (clarity > CLARITY_THRESHOLD && frequency > MIN_FREQ && frequency < MAX_FREQ) {
         const midi = frequencyToMidi(frequency);
@@ -121,7 +123,7 @@ export default function useRecorder() {
     // Finalize any in-progress note
     if (currentNote && recordStart) {
       const elapsedSec = (performance.now() - recordStart) / 1000;
-      const currentBeat = secondsToBeats(elapsedSec, tempo);
+      const currentBeat = startBeat + secondsToBeats(elapsedSec, tempo);
       const duration = currentBeat - currentNote.startTime;
       if (duration > minNoteDuration) {
         addNote({
