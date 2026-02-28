@@ -3,6 +3,7 @@ import useMidiExport from '../hooks/useMidiExport';
 import useRecorder from '../hooks/useRecorder';
 import usePlayback from '../hooks/usePlayback';
 import { PRESET_NAMES } from '../utils/presets';
+import Logo from './Logo';
 
 export default function TopBar() {
   const isRecording = useNoteStore((s) => s.isRecording);
@@ -46,6 +47,9 @@ export default function TopBar() {
 
   return (
     <div className="top-bar">
+      <Logo />
+      <div className="divider" />
+
       {/* Transport controls */}
       <div className="transport-section">
         <button
@@ -94,6 +98,7 @@ export default function TopBar() {
             min={0.05}
             max={1}
             step={0.05}
+            style={{ width: 50 }}
             value={minNoteDuration}
             onChange={(e) => useNoteStore.getState().setMinNoteDuration(Number(e.target.value))}
           />

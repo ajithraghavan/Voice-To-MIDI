@@ -31,6 +31,44 @@ body {
   flex-direction: column;
 }
 
+/* Logo */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.logo svg {
+  flex-shrink: 0;
+}
+
+.logo-text {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.logo-voice {
+  color: var(--accent);
+}
+
+.logo-arrow {
+  color: var(--text-secondary);
+  font-weight: 400;
+  font-size: 9px;
+  text-transform: lowercase;
+}
+
+.logo-midi {
+  color: var(--text-primary);
+}
+
 /* Top Bar — Ableton-style compact header */
 .top-bar {
   display: flex;
