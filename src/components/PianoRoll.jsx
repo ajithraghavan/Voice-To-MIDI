@@ -3,6 +3,7 @@ import useNoteStore from '../stores/useNoteStore';
 import {
   MIN_MIDI, MAX_MIDI, TOTAL_KEYS, KEY_HEIGHT, PIXELS_PER_BEAT, isBlackKey,
 } from '../utils/noteHelpers';
+import { previewNote, clearPreview } from '../hooks/usePlayback';
 
 const GRID_SUBDIVISION = 4; // 16th notes
 
@@ -175,6 +176,8 @@ export default function PianoRoll({ onScroll }) {
 
     if (midi < MIN_MIDI || midi > MAX_MIDI) return;
 
+    useNoteStore.getState().setHighlightedMidi(midi);
+
     const note = noteAtPosition(beat, midi);
 
     didDragRef.current = false;
@@ -233,6 +236,7 @@ export default function PianoRoll({ onScroll }) {
           });
         }
         setCursorStyle('grabbing');
+        previewNote(midi);
       }
     } else {
       // Click on empty space
@@ -257,6 +261,9 @@ export default function PianoRoll({ onScroll }) {
     // Cursor feedback when not dragging
     if (!dragState) {
       const { beat, midi } = canvasToGrid(x, y);
+      if (midi >= MIN_MIDI && midi <= MAX_MIDI) {
+        useNoteStore.getState().setHighlightedMidi(midi);
+      }
       const note = noteAtPosition(beat, midi);
       if (note) {
         const noteEndX = (note.startTime + note.duration) * PIXELS_PER_BEAT;
@@ -287,6 +294,13 @@ export default function PianoRoll({ onScroll }) {
       const deltaMidi = -Math.round((y - dragState.startY) / KEY_HEIGHT);
       const snappedDeltaBeat = Math.round(deltaBeat * GRID_SUBDIVISION) / GRID_SUBDIVISION;
 
+      // Update highlighted key to match the dragged note's current pitch
+      const origMidi = dragState.origPositions[dragState.noteId]?.midi;
+      if (origMidi !== undefined) {
+        const currentMidi = Math.min(MAX_MIDI, Math.max(MIN_MIDI, origMidi + deltaMidi));
+        useNoteStore.getState().setHighlightedMidi(currentMidi);
+      }
+
       // Apply delta to all selected notes using stored original positions
       const { notes: allNotes } = useNoteStore.getState();
       const origPositions = dragState.origPositions;
@@ -298,6 +312,13 @@ export default function PianoRoll({ onScroll }) {
         const newMidi = Math.min(MAX_MIDI, Math.max(MIN_MIDI, orig.midi + deltaMidi));
         return { ...n, startTime: newStart, midi: newMidi };
       });
+
+      // Preview sound for moved notes
+      const movedMidis = Object.keys(origPositions).map((id) => {
+        const orig = origPositions[id];
+        return Math.min(MAX_MIDI, Math.max(MIN_MIDI, orig.midi + deltaMidi));
+      });
+      previewNote(movedMidis);
 
       useNoteStore.getState().setNotes(updatedNotes);
     }
@@ -345,6 +366,7 @@ export default function PianoRoll({ onScroll }) {
             duration: 1 / GRID_SUBDIVISION,
             velocity: 100,
           });
+          previewNote(midi);
         }
       }
       setSelectionRect(null);
@@ -354,7 +376,9 @@ export default function PianoRoll({ onScroll }) {
       setCursorStyle('grab');
     }
 
+    useNoteStore.getState().setHighlightedMidi(null);
     setDragState(null);
+    clearPreview();
   }, [dragState, selectionRect, notes, canvasToGrid]);
 
   const handleContextMenu = useCallback((e) => {

@@ -336,6 +336,11 @@ body {
   color: #666;
 }
 
+.piano-key.highlighted {
+  background: rgba(255, 122, 0, 0.3) !important;
+  color: #ff7a00 !important;
+}
+
 .key-label {
   font-family: monospace;
 }

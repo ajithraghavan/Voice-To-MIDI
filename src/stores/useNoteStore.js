@@ -13,6 +13,7 @@ const useNoteStore = create((set, get) => ({
   isPlaying: false,
   playbackPosition: 0, // in beats
   selectedNoteIds: [],
+  highlightedMidi: null,
   clipboard: [],
   _history: [],
   _historyIndex: -1,
@@ -117,6 +118,8 @@ const useNoteStore = create((set, get) => ({
     }),
 
   clearSelection: () => set({ selectedNoteIds: [] }),
+
+  setHighlightedMidi: (midi) => set({ highlightedMidi: midi }),
 
   // Clipboard actions
   copySelected: () => {

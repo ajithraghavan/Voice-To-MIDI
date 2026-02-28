@@ -9,6 +9,24 @@ let instrument = null;
 let raf = null;
 let startTime = null;
 
+let lastPreviewMidi = null;
+
+export async function previewNote(midiValues) {
+  if (!instrument) return;
+  const arr = Array.isArray(midiValues) ? midiValues : [midiValues];
+  const key = arr.slice().sort().join(',');
+  if (key === lastPreviewMidi) return;
+  lastPreviewMidi = key;
+
+  await Tone.start();
+  const names = arr.map((m) => midiToNoteName(m));
+  instrument.triggerAttackRelease(names, 0.15);
+}
+
+export function clearPreview() {
+  lastPreviewMidi = null;
+}
+
 export default function usePlayback() {
   const selectedPreset = useNoteStore((s) => s.selectedPreset);
 
